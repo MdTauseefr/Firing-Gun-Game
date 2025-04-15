@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firing Gun Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #282c34;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        .score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="score">Score: 0</div>
+    <canvas id="gameCanvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        let score = 0;
+        const scoreDisplay = document.querySelector(".score");
+
+        // Target properties
+        const target = {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            radius: 30,
+        };
+
+        // Bullets array
+        const bullets = [];
+
+        // Gun properties
+        const gun = {
+            x: canvas.width / 2,
+            y: canvas.height - 50,
+        };
+
+        function drawTarget() {
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+            ctx.fillStyle = "red";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawGun() {
+            ctx.beginPath();
+            ctx.rect(gun.x - 10, gun.y - 20, 20, 40);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        function drawBullets() {
+            bullets.forEach((bullet, index) => {
+                ctx.beginPath();
+                ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = "yellow";
+                ctx.fill();
+                ctx.closePath();
+
+                bullet.y -= bullet.speed;
+
+                // Remove bullet if out of bounds
+                if (bullet.y < 0) {
+                    bullets.splice(index, 1);
+                }
+
+                // Check collision with target
+                const dx = bullet.x - target.x;
+                const dy = bullet.y - target.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                if (distance < target.radius) {
+                    bullets.splice(index, 1);
+                    score++;
+                    scoreDisplay.textContent = `Score: ${score}`;
+
+                    // Move target to a new random position
+                    target.x = Math.random() * canvas.width;
+                    target.y = Math.random() * canvas.height;
+                }
+            });
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawTarget();
+            drawGun();
+            drawBullets();
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        canvas.addEventListener("click", (e) => {
+            const bullet = {
+                x: gun.x,
+                y: gun.y,
+                speed: 10,
+            };
+            bullets.push(bullet);
+        });
+
+        // Move gun with mouse
+        canvas.addEventListener("mousemove", (e) => {
+            gun.x = e.clientX;
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
